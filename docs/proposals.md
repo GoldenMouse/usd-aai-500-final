@@ -1,4 +1,4 @@
-# Project Dataset Proposals:
+# Project Dataset Proposals
 
 ## Michael
 Option 1: ISIC 2024 Skin Cancer (Metadata-Only Prediction)
