@@ -1,4 +1,4 @@
-# Data frame: `support2`
+# Data frame: `support2` (source: https://hbiostat.org/data/repo/csupport2)
 **Overview:** 9,105 observations, 47 variables (maximum NAs: 5,641)
 
 ### Variables & Metadata

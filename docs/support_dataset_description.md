@@ -1,4 +1,4 @@
-# SUPPORT Study Dataset Description
+# SUPPORT Study Dataset Description (source: https://hbiostat.org/data/repo/supportdesc)
 
 ## Overview
 The `support` dataset is a random sample of 1,000 patients from Phases I & II of SUPPORT (Study to Understand Prognoses Preferences Outcomes and Risks of Treatment). This dataset is very good for learning how to fit highly nonlinear predictor effects, imputing missing data, and for modeling 4 types of response variables:
