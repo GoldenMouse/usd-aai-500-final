@@ -6,10 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: [actions/checkout@v4](https://github.com)
+        uses: actions/checkout@v4
       
       - name: Run Ruff Lint
-        uses: [astral-sh/ruff-action@v3](https://github.com/astral-sh/ruff-action)
+        uses: astral-sh/ruff-action@v3
         with:
-          # By default, this runs `ruff check .` which includes .py and .ipynb files
           args: "check"
