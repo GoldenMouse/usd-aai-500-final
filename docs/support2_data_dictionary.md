@@ -48,10 +48,10 @@
 | `glucose` | Glucose Day 3 | double | 4500 |
 | `bun` | BUN Day 3 | double | 4352 |
 | `urine` | Urine Output Day 3 | double | 4862 |
-| `adlp` | ADL Patient Day 3 | double | 5641 |
-| `adls` | ADL Surrogate Day 3 | double | 2867 |
+| `adlp` | ADL Patient Day 3 (patient reported their Activities of Daily Living) | double | 5641 |
+| `adls` | ADL Surrogate Day 3 (surrogate reported ADL) | double | 2867 |
 | `sfdm2` | *See levels below* (5 levels) | integer | 1400 |
-| `adlsc` | Imputed ADL Calibrated to Surrogate | double | 0 |
+| `adlsc` | Imputed ADL Calibrated to Surrogate (this based from adlp and adls, use this) | double | 0 |
 
 ### Categorical Variable Levels
 
