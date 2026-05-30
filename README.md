@@ -17,10 +17,10 @@ This repository contains the code and resources for our AAI-500 final team proje
 
 ### Data Files
 
-| File | Layer | Rows | Columns |
+| File | Layer |
 |---|---|---|---|
-| `data/support2_raw_complete.csv` | Bronze | 9,105 | 48 |
-| `data/support2_cleaned.csv` | Silver | 9,105 | 46 |
+| `data/support2_raw_complete.csv` | Bronze |
+| `data/support2_cleaned.csv` | Silver |
 
 ## Project Structure
 Our analysis and methodology are broken down into the following key phases:
