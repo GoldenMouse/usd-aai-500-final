@@ -18,7 +18,7 @@ This repository contains the code and resources for our AAI-500 final team proje
 ### Data Files
 
 | File | Layer |
-|---|---|---|---|
+|---|---|---|
 | `data/support2_raw_complete.csv` | Bronze |
 | `data/support2_cleaned.csv` | Silver |
 
