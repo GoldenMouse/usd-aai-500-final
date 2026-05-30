@@ -1,0 +1,3 @@
+[tool.ruff]
+# Force Ruff to look inside notebooks natively
+extend-include = ["*.ipynb"]
