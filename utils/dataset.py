@@ -7,7 +7,7 @@ def load_csv(filename: str) -> DataFrame:
     """Load csv of filename into pandas df"""
     utils_dir = Path(__file__).resolve().parent
     data_dir = utils_dir.parent / "data"
-    DATA_PATH = data_dir / "support2_complete.csv"
+    DATA_PATH = data_dir / filename
     df = pd.read_csv(DATA_PATH)
     return df
 
