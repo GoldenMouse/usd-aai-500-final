@@ -12,6 +12,41 @@ def load_csv(filename: str) -> DataFrame:
     return df
 
 
+def get_column_groups() -> dict:
+    """Return the standard column groupings for the SUPPORT2 dataset."""
+    return {
+        "outcome": ["death", "hospdead", "d_time", "slos"],
+        "id": ["id"],
+        "target": "death_180d",
+        "benchmark": ["surv2m", "surv6m", "aps", "sps", "prg2m", "prg6m", "dnr"],
+        "lab": [
+            "meanbp",
+            "wblc",
+            "hrt",
+            "resp",
+            "temp",
+            "pafi",
+            "alb",
+            "bili",
+            "crea",
+            "sod",
+            "ph",
+            "glucose",
+            "bun",
+            "urine",
+        ],
+    }
+
+
+def get_feature_cols(df: DataFrame) -> list:
+    """Return feature column names by excluding outcome, id, target, and benchmark cols."""
+    groups = get_column_groups()
+    exclude = (
+        groups["outcome"] + groups["id"] + [groups["target"]] + groups["benchmark"]
+    )
+    return [c for c in df.columns if c not in exclude]
+
+
 def get_project_root() -> Path:
     current = Path.cwd().resolve()
 
