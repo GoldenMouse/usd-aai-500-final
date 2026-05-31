@@ -11,9 +11,16 @@ This repository contains the code and resources for our AAI-500 final team proje
 *(Note: Work is divided equally. All team members contribute to and review the codebase.)*
 
 ## Dataset
-*   **Source:** [e.g., UCI Machine Learning Repository]
-*   **Description:** [Brief description of the chosen dataset]
-*   **Link:** [URL]
+*   **Source:** UCI Machine Learning Repository (ID: 880)
+*   **Description:** SUPPORT2 - Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment. 9,105 seriously ill hospitalized patients with day-3 physiological measurements, demographics, and survival outcomes.
+*   **Citation:** Knaus WA, Harrell FE, Lynn J et al. (1995). The SUPPORT prognostic model. *Annals of Internal Medicine*, 122, 191-203.
+
+### Data Files
+
+| File | Layer |
+|---|---|
+| `data/support2_raw_complete.csv` | Bronze |
+| `data/support2_cleaned.csv` | Silver |
 
 ## Project Structure
 Our analysis and methodology are broken down into the following key phases:

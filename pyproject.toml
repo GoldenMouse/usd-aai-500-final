@@ -1,0 +1,9 @@
+[project]
+name = "usd-aai-500-final"
+version = "0.1.0"
+description = "Final Project"
+requires-python = ">=3.10"
+
+[tool.ruff]
+# Explicitly force indexing of jupyter notebook cells
+extend-include = ["*.ipynb"]
