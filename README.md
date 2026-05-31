@@ -10,6 +10,11 @@ This repository contains the code and resources for our AAI-500 final team proje
 
 *(Note: Work is divided equally. All team members contribute to and review the codebase.)*
 
+## Trello 
+We track our work using a Trello board:
+`https://trello.com/b/Zqe0Wmgq/aai-500-final-project`
+
+
 ## Dataset
 *   **Source:** UCI Machine Learning Repository (ID: 880)
 *   **Description:** SUPPORT2 - Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment. 9,105 seriously ill hospitalized patients with day-3 physiological measurements, demographics, and survival outcomes.
