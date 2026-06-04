@@ -3,8 +3,7 @@ name: Merge Notebooks
 on:
   push:
     branches:
-      # - main
-      - Tue/nb-merger
+      - main
 
 jobs:
   merge:
