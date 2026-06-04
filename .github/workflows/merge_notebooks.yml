@@ -1,0 +1,37 @@
+name: Merge Notebooks
+
+on:
+  push:
+    branches:
+      # - main
+      - Tue/nb-merger
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run merge script
+        run: python scripts/merge_notebooks.py
+
+      - name: Commit Final.ipynb
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifacts/Final.ipynb
+          if git diff --cached --quiet; then
+            echo "No changes to Final.ipynb — skipping commit."
+          else
+            git commit -m "chore: regenerate artifacts/Final.ipynb [skip ci]"
+            git push
+          fi
