@@ -1,0 +1,41 @@
+name: Merge Notebooks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install nbconvert and Playwright
+        run: |
+          pip install "nbconvert[webpdf]"
+          playwright install chromium --with-deps
+
+      - name: Run merge script
+        run: python scripts/merge_notebooks.py
+
+      - name: Commit artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifacts/Final-Project-Report-Team-3.ipynb artifacts/Final-Project-Report-Team-3.pdf
+          if git diff --cached --quiet; then
+            echo "No changes to artifacts — skipping commit."
+          else
+            git commit -m "chore: regenerate Final-Project-Report-Team-3.ipynb and .pdf [skip ci]"
+            git push
+          fi
