@@ -9,6 +9,7 @@ outputs are preserved exactly as-is.
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,6 +64,26 @@ def merge_notebooks(paths: list[Path]) -> dict:
     return merged
 
 
+def export_pdf(ipynb_path: Path) -> None:
+    pdf_path = ipynb_path.with_suffix(".pdf")
+    result = subprocess.run(
+        [
+            sys.executable, "-m", "nbconvert",
+            "--to", "webpdf",
+            "--no-input",
+            "--output", pdf_path.name,
+            "--output-dir", str(ipynb_path.parent),
+            str(ipynb_path),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(result.stderr, file=sys.stderr)
+        raise RuntimeError(f"nbconvert failed with exit code {result.returncode}")
+    print(f"Saved -> {pdf_path.relative_to(ipynb_path.parent.parent)}")
+
+
 def main() -> None:
     root = get_project_root()
     notebooks_dir = root / "src" / "notebooks"
@@ -86,8 +107,10 @@ def main() -> None:
         f.write("\n")
 
     print(f"\nSaved -> {output_path.relative_to(root)}")
-    total_cells = len(merged["cells"])
-    print(f"Total cells: {total_cells}")
+    print(f"Total cells: {len(merged['cells'])}")
+
+    print("\nExporting PDF...")
+    export_pdf(output_path)
 
 
 if __name__ == "__main__":
