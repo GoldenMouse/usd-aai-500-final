@@ -87,7 +87,7 @@ def export_pdf(ipynb_path: Path) -> None:
 def main() -> None:
     root = get_project_root()
     notebooks_dir = root / "src" / "notebooks"
-    output_path = root / "artifacts" / "Final.ipynb"
+    output_path = root / "artifacts" / "Final-Project-Report-Team-3.ipynb"
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
