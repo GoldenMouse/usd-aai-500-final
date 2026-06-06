@@ -20,6 +20,15 @@ We track our work using a Trello board:
 *   **Description:** SUPPORT2 - Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment. 9,105 seriously ill hospitalized patients with day-3 physiological measurements, demographics, and survival outcomes.
 *   **Citation:** Knaus WA, Harrell FE, Lynn J et al. (1995). The SUPPORT prognostic model. *Annals of Internal Medicine*, 122, 191-203.
 
+## Nbstripout
+We remove all outputs from working notebooks to allow us to see diffs better in PRs
+Usage:
+
+Installation: Run `pip install nbstripout`
+Setup: Run `nbstripout --install` in your terminal.
+
+We setup .gitattributes to only target Nbstripout in src/ directory
+
 ### Data Files
 
 | File | Layer |
