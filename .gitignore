@@ -221,3 +221,7 @@ __marimo__/
 .claude
 
 scratch/
+deploy_keys/
+
+.DS_Store
+**/.DS_Store
