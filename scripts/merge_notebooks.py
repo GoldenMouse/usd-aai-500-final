@@ -9,7 +9,6 @@ outputs are preserved exactly as-is.
 
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -65,22 +64,26 @@ def merge_notebooks(paths: list[Path]) -> dict:
 
 
 def export_pdf(ipynb_path: Path) -> None:
+    import asyncio
+    # Windows Store Python uses SelectorEventLoop by default, which cannot spawn
+    # subprocesses — Playwright requires ProactorEventLoop on Windows.
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+    import nbformat
+    from nbconvert import WebPDFExporter
+
     pdf_path = ipynb_path.with_suffix(".pdf")
-    result = subprocess.run(
-        [
-            sys.executable, "-m", "nbconvert",
-            "--to", "webpdf",
-            "--no-input",
-            "--output", pdf_path.name,
-            "--output-dir", str(ipynb_path.parent),
-            str(ipynb_path),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print(result.stderr, file=sys.stderr)
-        raise RuntimeError(f"nbconvert failed with exit code {result.returncode}")
+
+    with open(ipynb_path, encoding="utf-8") as f:
+        nb = nbformat.read(f, as_version=4)
+
+    exporter = WebPDFExporter()
+    pdf_data, _ = exporter.from_notebook_node(nb)
+
+    with open(pdf_path, "wb") as f:
+        f.write(pdf_data)
+
     print(f"Saved -> {pdf_path.relative_to(ipynb_path.parent.parent)}")
 
 
