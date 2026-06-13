@@ -55,7 +55,6 @@ CONTINUOUS = [
     "hrt",
     "resp",
     "temp",
-    "alb",
     "sod",
 ]
 
@@ -64,7 +63,7 @@ BINARY = ["diabetes"]
 
 # Categorical columns (one-hot encoded, first level dropped as reference).
 # e.g. "dzclass", "ca", "income", "race"
-CATEGORICAL = ["dzgroup", "ca", "income", "edu", "dnr"]
+CATEGORICAL = ["dzclass", "ca", "income"]
 # ===========================================================================
 
 TARGET = "death_180d"
