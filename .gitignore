@@ -222,3 +222,6 @@ __marimo__/
 
 scratch/
 deploy_keys/
+
+.DS_Store
+**/.DS_Store
