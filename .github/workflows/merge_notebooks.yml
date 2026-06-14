@@ -3,7 +3,7 @@ name: Merge Notebooks
 on:
   push:
     branches:
-      - main
+      - '**'
 
 jobs:
   merge:
@@ -30,7 +30,10 @@ jobs:
       - name: Run merge script
         run: python scripts/merge_notebooks.py
 
+      # On feature branches the run is validation-only — execute the notebooks
+      # to confirm they run end-to-end, but don't save/commit the artifacts.
       - name: Commit artifacts
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
