@@ -25,14 +25,21 @@ def get_project_root() -> Path:
 
 
 def collect_notebooks(notebooks_dir: Path) -> list[Path]:
-    pattern = re.compile(r"^(\d+)_")
+    # Match a numeric prefix followed by an optional letter suffix, e.g.
+    # "03_", "03a_", "03b_". The suffix lets several notebooks share the same
+    # ordinal while keeping an explicit order (03a before 03b).
+    pattern = re.compile(r"^(\d+)([a-zA-Z]*)_")
     matches = []
     for nb in notebooks_dir.glob("*.ipynb"):
         m = pattern.match(nb.name)
         if m:
-            matches.append((int(m.group(1)), nb))
-    matches.sort(key=lambda x: x[0])
-    return [nb for _, nb in matches]
+            matches.append((int(m.group(1)), m.group(2).lower(), nb))
+    # Sort by numeric prefix, then letter suffix, then filename so notebooks
+    # sharing a prefix (e.g. 03_modeling_andre, 03_modeling_michael or
+    # 03a_..., 03b_...) merge in a stable, deterministic order instead of
+    # filesystem-dependent glob order.
+    matches.sort(key=lambda x: (x[0], x[1], x[2].name))
+    return [nb for _, _, nb in matches]
 
 
 def merge_notebooks(paths: list[Path]) -> dict:
