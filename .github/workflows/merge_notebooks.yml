@@ -22,9 +22,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install nbconvert and Playwright
+      - name: Install dependencies
         run: |
-          pip install "nbconvert[webpdf]"
+          pip install -r requirements.txt "nbconvert[webpdf]"
           playwright install chromium --with-deps
 
       - name: Run merge script

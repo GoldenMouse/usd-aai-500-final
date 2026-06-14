@@ -4,8 +4,13 @@ numpy>=2.4.4
 matplotlib>=3.10.9
 seaborn>=0.13.2
 scipy>=1.17.1
+scikit-learn>=1.8.0
+statsmodels>=0.14.6
+patsy>=1.0.2
 ucimlrepo>=0.0.7
-# --- for converting notebook to pdf
+# --- for executing notebooks end-to-end and converting to pdf
 nbconvert>=7.0.0
+nbclient>=0.7.0
+ipykernel>=6.0.0
 playwright>=1.0.0
 # ---
