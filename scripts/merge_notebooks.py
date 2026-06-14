@@ -3,17 +3,15 @@ CREATED by Claude
 Merge all ordinal-prefixed notebooks in src/notebooks/ into artifacts/Final.ipynb.
 
 Notebooks matching the pattern NN_*.ipynb (where NN is one or more digits) are
-collected, sorted by their numeric prefix, executed end-to-end (each in its own
-fresh kernel) to populate fresh outputs, and concatenated in order.  The source
-notebooks on disk are never modified — outputs only live in the merged artifact.
+collected, sorted by their numeric prefix, and concatenated in order.  Cells are
+copied as-is — the notebooks are not executed (the source notebooks are stored
+output-stripped, so the merged artifact carries no outputs either).
 """
 
+import json
 import re
 import sys
 from pathlib import Path
-
-# Generous per-cell timeout (seconds) so model-training cells don't get killed.
-CELL_TIMEOUT = 1200
 
 
 def get_project_root() -> Path:
@@ -45,38 +43,16 @@ def collect_notebooks(notebooks_dir: Path) -> list[Path]:
     return [nb for _, _, nb in matches]
 
 
-def execute_notebook(path: Path):
-    """Read a notebook and run it end-to-end in a fresh kernel, returning the
-    executed NotebookNode. A cell error raises CellExecutionError, which we let
-    propagate so the build fails instead of producing a half-baked artifact."""
-    import nbformat
-    from nbclient import NotebookClient
-
-    with open(path, encoding="utf-8") as f:
-        nb = nbformat.read(f, as_version=4)
-
-    kernel_name = nb.get("metadata", {}).get("kernelspec", {}).get("name") or "python3"
-    client = NotebookClient(
-        nb,
-        timeout=CELL_TIMEOUT,
-        kernel_name=kernel_name,
-        # Run with the kernel cwd set to the notebook's own directory.
-        resources={"metadata": {"path": str(path.parent)}},
-    )
-    client.execute()
-    return nb
-
-
-def merge_notebooks(paths: list[Path]):
+def merge_notebooks(paths: list[Path]) -> dict:
     if not paths:
         raise ValueError("No notebooks to merge.")
 
-    print(f"  Executing {paths[0].name} ...")
-    merged = execute_notebook(paths[0])
+    with open(paths[0], encoding="utf-8") as f:
+        merged = json.load(f)
 
     for path in paths[1:]:
-        print(f"  Executing {path.name} ...")
-        nb = execute_notebook(path)
+        with open(path, encoding="utf-8") as f:
+            nb = json.load(f)
 
         # Validate kernel compatibility (warn only)
         base_kernel = merged.get("metadata", {}).get("kernelspec", {}).get("name", "")
@@ -93,16 +69,20 @@ def merge_notebooks(paths: list[Path]):
     return merged
 
 
-def export_pdf(nb, ipynb_path: Path) -> None:
+def export_pdf(ipynb_path: Path) -> None:
     import asyncio
     # Windows Store Python uses SelectorEventLoop by default, which cannot spawn
     # subprocesses — Playwright requires ProactorEventLoop on Windows.
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+    import nbformat
     from nbconvert import WebPDFExporter
 
     pdf_path = ipynb_path.with_suffix(".pdf")
+
+    with open(ipynb_path, encoding="utf-8") as f:
+        nb = nbformat.read(f, as_version=4)
 
     exporter = WebPDFExporter()
     pdf_data, _ = exporter.from_notebook_node(nb)
@@ -129,19 +109,17 @@ def main() -> None:
     for nb in notebooks:
         print(f"  {nb.relative_to(root)}")
 
-    print("\nExecuting notebooks end-to-end:")
     merged = merge_notebooks(notebooks)
 
-    import nbformat
-
     with open(output_path, "w", encoding="utf-8") as f:
-        nbformat.write(merged, f)
+        json.dump(merged, f, indent=1, ensure_ascii=False)
+        f.write("\n")
 
     print(f"\nSaved -> {output_path.relative_to(root)}")
     print(f"Total cells: {len(merged['cells'])}")
 
     print("\nExporting PDF...")
-    export_pdf(merged, output_path)
+    export_pdf(output_path)
 
 
 if __name__ == "__main__":
