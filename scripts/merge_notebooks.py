@@ -3,13 +3,13 @@ CREATED by Claude
 Merge all ordinal-prefixed notebooks in src/notebooks/ into artifacts/Final.ipynb.
 
 Notebooks matching the pattern NN_*.ipynb (where NN is one or more digits) are
-collected, sorted by their numeric prefix, and concatenated in order.  All cell
-outputs are preserved exactly as-is.
+collected, sorted by their numeric prefix, and concatenated in order.  Cells are
+copied as-is — the notebooks are not executed (the source notebooks are stored
+output-stripped, so the merged artifact carries no outputs either).
 """
 
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -26,14 +26,21 @@ def get_project_root() -> Path:
 
 
 def collect_notebooks(notebooks_dir: Path) -> list[Path]:
-    pattern = re.compile(r"^(\d+)_")
+    # Match a numeric prefix followed by an optional letter suffix, e.g.
+    # "03_", "03a_", "03b_". The suffix lets several notebooks share the same
+    # ordinal while keeping an explicit order (03a before 03b).
+    pattern = re.compile(r"^(\d+)([a-zA-Z]*)_")
     matches = []
     for nb in notebooks_dir.glob("*.ipynb"):
         m = pattern.match(nb.name)
         if m:
-            matches.append((int(m.group(1)), nb))
-    matches.sort(key=lambda x: x[0])
-    return [nb for _, nb in matches]
+            matches.append((int(m.group(1)), m.group(2).lower(), nb))
+    # Sort by numeric prefix, then letter suffix, then filename so notebooks
+    # sharing a prefix (e.g. 03_modeling_andre, 03_modeling_michael or
+    # 03a_..., 03b_...) merge in a stable, deterministic order instead of
+    # filesystem-dependent glob order.
+    matches.sort(key=lambda x: (x[0], x[1], x[2].name))
+    return [nb for _, _, nb in matches]
 
 
 def merge_notebooks(paths: list[Path]) -> dict:
@@ -43,8 +50,6 @@ def merge_notebooks(paths: list[Path]) -> dict:
     with open(paths[0], encoding="utf-8") as f:
         merged = json.load(f)
 
-    # Strip trailing newline from last cell of each notebook before appending
-    # so the merged notebook doesn't accumulate blank lines between sections.
     for path in paths[1:]:
         with open(path, encoding="utf-8") as f:
             nb = json.load(f)
@@ -65,22 +70,26 @@ def merge_notebooks(paths: list[Path]) -> dict:
 
 
 def export_pdf(ipynb_path: Path) -> None:
+    import asyncio
+    # Windows Store Python uses SelectorEventLoop by default, which cannot spawn
+    # subprocesses — Playwright requires ProactorEventLoop on Windows.
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+    import nbformat
+    from nbconvert import WebPDFExporter
+
     pdf_path = ipynb_path.with_suffix(".pdf")
-    result = subprocess.run(
-        [
-            sys.executable, "-m", "nbconvert",
-            "--to", "webpdf",
-            "--no-input",
-            "--output", pdf_path.name,
-            "--output-dir", str(ipynb_path.parent),
-            str(ipynb_path),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print(result.stderr, file=sys.stderr)
-        raise RuntimeError(f"nbconvert failed with exit code {result.returncode}")
+
+    with open(ipynb_path, encoding="utf-8") as f:
+        nb = nbformat.read(f, as_version=4)
+
+    exporter = WebPDFExporter()
+    pdf_data, _ = exporter.from_notebook_node(nb)
+
+    with open(pdf_path, "wb") as f:
+        f.write(pdf_data)
+
     print(f"Saved -> {pdf_path.relative_to(ipynb_path.parent.parent)}")
 
 
