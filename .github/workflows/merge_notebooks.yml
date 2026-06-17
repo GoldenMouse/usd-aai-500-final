@@ -42,5 +42,11 @@ jobs:
             echo "No changes to artifacts — skipping commit."
           else
             git commit -m "chore: regenerate Final-Project-Report-Team-3.ipynb and .pdf [skip ci]"
-            git push
+            # Rebase before pushing so a concurrent run (e.g. the Export HTML
+            # Report job pushing the .html) doesn't reject our push.
+            for attempt in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              echo "push attempt $attempt failed — retrying"
+              sleep 3
+            done
           fi

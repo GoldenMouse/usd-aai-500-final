@@ -1,0 +1,55 @@
+name: Export HTML Report
+
+# Convert src/master.ipynb to a self-contained HTML file and commit it to
+# artifacts/ on every push to main. The notebook is converted as-is (not
+# executed), so the HTML reflects whatever outputs are saved in master.ipynb —
+# commit it with its cell outputs to get a full report.
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  export-html:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY_MAIN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install nbconvert
+        run: pip install "nbconvert>=7.0.0"
+
+      - name: Convert master.ipynb to HTML
+        run: |
+          jupyter nbconvert --to html src/master.ipynb \
+            --output Final-Project-Report-Team-3 \
+            --output-dir artifacts
+
+      - name: Commit HTML artifact
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add artifacts/Final-Project-Report-Team-3.html
+          if git diff --cached --quiet; then
+            echo "No changes to HTML — skipping commit."
+          else
+            git commit -m "chore: regenerate Final-Project-Report-Team-3.html [skip ci]"
+            # Rebase before pushing so a concurrent run (e.g. the Merge
+            # Notebooks job pushing the .ipynb/.pdf) doesn't reject our push.
+            for attempt in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              echo "push attempt $attempt failed — retrying"
+              sleep 3
+            done
+          fi
