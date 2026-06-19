@@ -9904,9 +9904,7 @@ Final dataset shape: 9,105 rows x 41 columns
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="1.8.2-Imputation-Bias-Check">1.8.2 Imputation Bias Check<a class="anchor-link" href="#1.8.2-Imputation-Bias-Check">¶</a></h3><p>Several laboratory columns carried substantial missingness before imputation. This check examines whether that missingness was related to the outcome, which is the missing-at-random assumption the downstream models depend on. The raw dataset is used to recover original missing positions; mortality is then compared between originally-missing and originally-present rows.</p>
-<p>A gap near zero indicates missingness is unrelated to the outcome and supports the imputation strategy.
-For example, glucose has a <code>0.02</code> gap, which means glucose is 0.02 standard deviation from the average glucose value of the original (pre-imputed) data. A gap lower than <code>0.05</code> is considered <code>trivial</code>.</p>
+<h3 id="1.8.2-Imputation-Bias-Check">1.8.2 Imputation Bias Check<a class="anchor-link" href="#1.8.2-Imputation-Bias-Check">¶</a></h3><p>Several lab columns had a lot of blanks before they were filled in. Before trusting the filled-in values, we checked whether being blank was itself tied to dying. The idea is simple: if the patients who were missing a lab died at about the same rate as the patients who had it, then the blanks are not hiding anything about who lives or dies, so filling them in is safe. If the two death rates were far apart, the fill could bias the result. For each imputed column we went back to the raw data to find which rows were originally blank, then compared the 180-day death rate of those blank rows against the rows that had a value. The gap is just that difference in death rate. A gap near zero means missingness is unrelated to the outcome, which is the missing-at-random assumption the models rely on. We treated any gap under 0.05 as trivial. Glucose, for example, came in at 0.02, so patients missing glucose died at almost the same rate as those who had it.</p>
 </div>
 </div>
 </div>
@@ -9918,7 +9916,13 @@ For example, glucose has a <code>0.02</code> gap, which means glucose is 0.02 st
 <div class="jp-InputPrompt jp-InputArea-prompt">In [207]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">dtime</span> <span class="o">=</span> <span class="s2">"d.time"</span> <span class="k">if</span> <span class="s2">"d.time"</span> <span class="ow">in</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s2">"d_time"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Bias check: for each imputed column, we compare the 180-day death rate of the</span>
+<span class="c1"># patients whose value was originally blank against the patients who had a value.</span>
+<span class="c1"># If those two rates are close, being blank was not tied to the outcome, so</span>
+<span class="c1"># filling the blanks in is safe. gap = death rate (was blank) - death rate (had value).</span>
+<span class="c1"># We use df_raw to find the original blanks, since df is already imputed.</span>
+
+<span class="n">dtime</span> <span class="o">=</span> <span class="s2">"d.time"</span> <span class="k">if</span> <span class="s2">"d.time"</span> <span class="ow">in</span> <span class="n">df_raw</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s2">"d_time"</span>
 <span class="n">y_raw</span> <span class="o">=</span> <span class="p">((</span><span class="n">df_raw</span><span class="p">[</span><span class="s2">"death"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_raw</span><span class="p">[</span><span class="n">dtime</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">180</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
 <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
@@ -12796,11 +12800,11 @@ Data layers:
 <li>Bayesian logistic regression: prior predictive check, MCMC sampling, convergence diagnostics, posterior coefficient and predictive checks, benchmark comparison, B-spline nonlinearity, and per-patient interpretability</li>
 <li>Inference vs. prediction alignment (ML-Q3)</li>
 </ol>
-<p><strong>Analytical structure:</strong> RQ1 and RQ2 establish which clinical factors are associated
+<p><strong>Analytical structure:</strong> Disease Group (RQ1) and Day-3 Physiology (RQ2) establish which clinical factors are associated
 with 180-day mortality and quantify their effects. The frequentist pipeline then
 establishes predictive performance benchmarks. The Bayesian model synthesizes both
 goals: calibrated predictions with interpretable posterior coefficient distributions.
-ML-Q3 confirms the inference and prediction models are identifying the same underlying
+Convergence (ML-Q3) confirms the inference and prediction models are identifying the same underlying
 signal.</p>
 <p><strong>Benchmark:</strong> Knaus et al. (1995) reported an AUC of 0.78 for the SUPPORT
 prognostic model on independent phase II validation data. Our EDA (Section 2.14) confirmed this holds in the current dataset (AUC = 0.787 using
@@ -12834,7 +12838,7 @@ model: Objective estimates of survival for seriously ill hospitalized adults.
 </tr>
 <tr>
 <td><a href="#p3-s1">Section 3.1</a></td>
-<td>Frequentist Modeling (3.1.1 RQ1, 3.1.2 RQ2, 3.1.3-3.1.8 predictive pipeline, 3.1.9 inference vs. prediction alignment)</td>
+<td>Frequentist Modeling (3.1.1 Disease Group / RQ1, 3.1.2 Day-3 Physiology / RQ2, 3.1.3-3.1.8 predictive pipeline, 3.1.9 Convergence / ML-Q3)</td>
 </tr>
 <tr>
 <td><a href="#p3-s2">Section 3.2</a></td>
@@ -12937,7 +12941,7 @@ model: Objective estimates of survival for seriously ill hospitalized adults.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Section-3.1:-Frequentist-Modeling-">Section 3.1: Frequentist Modeling <a id="p3-s1"></a><a class="anchor-link" href="#Section-3.1:-Frequentist-Modeling-">¶</a></h2><p>The frequentist half of the analysis. We first address the two inference research questions (RQ1, RQ2), quantifying which clinical factors are associated with 180-day mortality, then build the predictive pipeline (regularized logistic regression and random forest) and benchmark it against the SUPPORT model.</p>
+<h2 id="Section-3.1:-Frequentist-Modeling-">Section 3.1: Frequentist Modeling <a id="p3-s1"></a><a class="anchor-link" href="#Section-3.1:-Frequentist-Modeling-">¶</a></h2><p>The frequentist half of the analysis. We first address the two inference research questions, Disease Group (RQ1) and Day-3 Physiology (RQ2),, quantifying which clinical factors are associated with 180-day mortality, then build the predictive pipeline (regularized logistic regression and random forest) and benchmark it against the SUPPORT model.</p>
 </div>
 </div>
 </div>
@@ -12948,7 +12952,7 @@ model: Objective estimates of survival for seriously ill hospitalized adults.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="3.1.1-Research-Question-1-(RQ1)-%E2%80%94-Does-Disease-Group-Shape-Odds-of-180-Day-Death?">3.1.1 Research Question 1 (RQ1) — Does Disease Group Shape Odds of 180-Day Death?<a class="anchor-link" href="#3.1.1-Research-Question-1-(RQ1)-%E2%80%94-Does-Disease-Group-Shape-Odds-of-180-Day-Death?">¶</a></h3><p>This is the team's primary research question, so it goes first. Disease group is the variable the later models hold constant, so a clean estimate of its effect comes before layering physiology on top in RQ2.</p>
+<h3 id="3.1.1-Disease-Group-(RQ1,-inference):-Does-disease-group-shape-the-odds-of-180-day-death?">3.1.1 Disease Group (RQ1, inference): Does disease group shape the odds of 180-day death?<a class="anchor-link" href="#3.1.1-Disease-Group-(RQ1,-inference):-Does-disease-group-shape-the-odds-of-180-day-death?">¶</a></h3><p>This is the team's primary research question, so it goes first. Disease group is the variable the later models hold constant, so a clean estimate of its effect comes before layering physiology on top in RQ2.</p>
 <p>As an inference question, the model checks whether a patient's main illness is
 associated with the odds of death within 180 days, and by how much, after age, sex,
 and overall severity are held constant. Each odds ratio compares a disease group to
@@ -13330,6 +13334,11 @@ is measured after age, sex, and severity are accounted for, not before.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Fit the multivariable logistic regression with statsmodels. The reference</span>
 <span class="c1"># group is fixed so every disease-group odds ratio is read against sepsis.</span>
+<span class="c1"># We don't scale the features here on purpose: this is inference, so each</span>
+<span class="c1"># coefficient exponentiates to an odds ratio per natural unit (per year of age,</span>
+<span class="c1"># per coma point). Standardizing would make the ORs per standard deviation and</span>
+<span class="c1"># break comparison with the SUPPORT literature. Scaling is applied only in the</span>
+<span class="c1"># predictive pipeline, not here.</span>
 <span class="n">formula</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"death_180d ~ age + sex + scoma + "</span>
     <span class="sa">f</span><span class="s1">'C(dzgroup, Treatment(reference="</span><span class="si">{</span><span class="n">REFERENCE_GROUP</span><span class="si">}</span><span class="s1">"))'</span>
@@ -13698,7 +13707,7 @@ several groups at once.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="3.1.2-Research-Question-2-(RQ2)-%E2%80%94-Does-Day-3-Physiology-Add-Signal-Beyond-Disease-Group?">3.1.2 Research Question 2 (RQ2) — Does Day-3 Physiology Add Signal Beyond Disease Group?<a class="anchor-link" href="#3.1.2-Research-Question-2-(RQ2)-%E2%80%94-Does-Day-3-Physiology-Add-Signal-Beyond-Disease-Group?">¶</a></h3><p>Once disease group, age, sex, and severity are already in the model, do the day-3
+<h3 id="3.1.2-Day-3-Physiology-(RQ2,-inference):-Does-day-3-physiology-add-signal-beyond-disease-group?">3.1.2 Day-3 Physiology (RQ2, inference): Does day-3 physiology add signal beyond disease group?<a class="anchor-link" href="#3.1.2-Day-3-Physiology-(RQ2,-inference):-Does-day-3-physiology-add-signal-beyond-disease-group?">¶</a></h3><p>Once disease group, age, sex, and severity are already in the model, do the day-3
 vitals and labs add anything? The catch is that a sick patient's numbers often just
 restate how sick the disease already implies, so the real test is whether physiology
 carries new signal after disease group is accounted for, not on its own.</p>
@@ -14289,18 +14298,8 @@ and the core physiology odds ratios compared.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h4 id="What-the-physiology-added">What the physiology added<a class="anchor-link" href="#What-the-physiology-added">¶</a></h4><p>Disease group carried the analysis. Pseudo R-squared went from 0.06 (age, sex,
-severity) to 0.12 once disease group was added, and only to 0.13 with physiology.
-The day-3 vitals and labs added only a small slice on top of disease group, though
-the likelihood-ratio test showed it was real (chi-square 93 on 5 df, p well below
-0.001). Age stayed flat across the three models, so it held as a confounder.</p>
-<p>Of the physiology measures, mean blood pressure, creatinine, and bilirubin were
-significant once disease and the rest were held constant; white count and albumin
-were not. Albumin coming out flat fits its heavy imputation with normal values. No
-collinearity showed up (all VIFs near 1), and dropping albumin and bilirubin barely
-moved the core odds ratios. Disease group still did most of the work. Physiology
-added a small but real increment, mostly from blood pressure, creatinine, and
-bilirubin.</p>
+<h4 id="What-the-physiology-added">What the physiology added<a class="anchor-link" href="#What-the-physiology-added">¶</a></h4><p>Disease group carried the analysis. Pseudo R-squared went from 0.06 (age, sex, severity) to 0.12 once disease group was added, and only to 0.13 with physiology. The day-3 vitals and labs added only a small slice on top of disease group, though the likelihood-ratio test showed it was real (chi-square 110 on 5 df, p well below 0.001). Age stayed flat across the three models, so it held as a confounder.</p>
+<p>Of the physiology measures, all five were significant once disease and the rest were held constant: mean blood pressure, creatinine, bilirubin, white count, and albumin. Albumin is the one to flag: on the more heavily imputed data it came out flat, and the cleaning surfaced its real effect, lower albumin going with higher odds of death. No collinearity showed up (all VIFs near 1), and dropping albumin and bilirubin barely moved the core odds ratios. Disease group still did most of the work. Physiology added a small but real increment, spread across blood pressure, albumin, creatinine, and bilirubin.</p>
 </div>
 </div>
 </div>
@@ -14311,7 +14310,7 @@ bilirubin.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="3.1.3-Load-Data-&amp;-Feature-Selection">3.1.3 Load Data &amp; Feature Selection<a class="anchor-link" href="#3.1.3-Load-Data-&amp;-Feature-Selection">¶</a></h3><p>With RQ1 and RQ2 establishing disease group as the dominant signal and physiology
+<h3 id="3.1.3-Load-Data-&amp;-Feature-Selection">3.1.3 Load Data &amp; Feature Selection<a class="anchor-link" href="#3.1.3-Load-Data-&amp;-Feature-Selection">¶</a></h3><p>With the Disease Group (RQ1) and Day-3 Physiology (RQ2) results establishing disease group as the dominant signal and physiology
 adding a real but smaller increment, the predictive models are built on the same
 Gold feature set with leakage exclusions applied below.</p>
 </div>
@@ -15612,10 +15611,10 @@ SUPPORT benchmark AUC: 0.787  (Knaus et al., 1995)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="3.1.9-Machine-Learning-Question-3-(ML-Q3)-Inference-vs.-Prediction-Alignment">3.1.9 Machine Learning Question 3 (ML-Q3) Inference vs. Prediction Alignment<a class="anchor-link" href="#3.1.9-Machine-Learning-Question-3-(ML-Q3)-Inference-vs.-Prediction-Alignment">¶</a></h3><p>This ties the two halves together. The inference side (RQ1 and RQ2) ranked variables
+<h3 id="3.1.9-Convergence-(ML-Q3,-bridge):-Inference-vs.-Prediction-Alignment">3.1.9 Convergence (ML-Q3, bridge): Inference vs. Prediction Alignment<a class="anchor-link" href="#3.1.9-Convergence-(ML-Q3,-bridge):-Inference-vs.-Prediction-Alignment">¶</a></h3><p>This ties the two halves together. The inference side, Disease Group (RQ1) and Day-3 Physiology (RQ2), ranked variables
 by how strongly they are associated with mortality (odds ratios). The prediction side
 ranks them by how much they drive the random forest (feature importance).
-ML-Q3 lays the two rankings side by side. Agreement makes a finding sturdier, and disagreement flags where explanation and prediction part ways.</p>
+Convergence (ML-Q3) lays the two rankings side by side. Agreement makes a finding sturdier, and disagreement flags where explanation and prediction part ways.</p>
 </div>
 </div>
 </div>
@@ -15765,19 +15764,8 @@ dtype: float64</pre>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h4 id="Where-the-two-views-line-up">Where the two views line up<a class="anchor-link" href="#Where-the-two-views-line-up">¶</a></h4><p>The two rankings agreed only in part. With avtisst removed as a leak, the prediction
-side spread its importance across age, the ADL score (adlsc), white count, coma score,
-mean blood pressure, and a broad set of day-3 vitals, rather than leaning on any single
-dominant variable. The inference side put disease group out front (RQ1), with physiology
-adding a small increment (RQ2). Both point at overall severity and physiology mattering,
-but disease group, which carried the strongest inference signal, did not dominate the
-prediction importance.</p>
-<p>Among the shared physiology variables the overlap was loose: some that were significant
-in the inference model carried little random-forest importance, and one that was not
-significant ranked higher, so the two lenses do not map one to one. Severity and
-physiology matter in both views, but no single variable runs the table in both. An odds
-ratio and a feature importance answer different questions, and that is the reason not to
-treat them as the same number.</p>
+<h4 id="Where-the-two-views-line-up">Where the two views line up<a class="anchor-link" href="#Where-the-two-views-line-up">¶</a></h4><p>The two rankings agreed only in part. With avtisst removed as a leak, the prediction side spread its importance across age, the ADL score (adlsc), white count, coma score, mean blood pressure, albumin, and a broad set of day-3 vitals, rather than leaning on any single dominant variable. The inference side put disease group out front (RQ1), with physiology adding a small increment (RQ2). Both point at overall severity and physiology mattering, but disease group, which carried the strongest inference signal, did not dominate the prediction importance.</p>
+<p>Among the shared physiology measures the two lenses lined up reasonably: the ones significant in the inference model also carried real random-forest importance, with albumin and mean blood pressure strong in both. The clearer split is disease group, the strongest inference signal yet not a top predictor. Severity and physiology matter in both views, but no single variable runs the table in both. An odds ratio and a feature importance answer different questions, and that is the reason not to treat them as the same number.</p>
 </div>
 </div>
 </div>
@@ -15795,7 +15783,7 @@ treat them as the same number.</p>
 <li>Provides calibrated uncertainty intervals for every prediction, a necessity for clinical domains.</li>
 </ul>
 <h3 id="3.2.1-Feature-Set-and-Encoding">3.2.1 Feature Set and Encoding<a class="anchor-link" href="#3.2.1-Feature-Set-and-Encoding">¶</a></h3><p>We use <strong>12 continuous, 1 binary, and 3 categorical</strong> features (25 model columns after
-one-hot encoding), informed by the RQ1 and RQ2 findings above and EDA analysis:</p>
+one-hot encoding), informed by the Disease Group (RQ1) and Day-3 Physiology (RQ2) findings above and EDA analysis:</p>
 <table>
 <thead>
 <tr>
