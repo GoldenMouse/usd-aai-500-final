@@ -14,9 +14,9 @@ uncertainty-aware predictions, benchmarking all models against the original SUPP
 score.
 
 ## Team Members
-*   **Andre Hoth (lead):** project coordination; frequentist modeling (baseline LR, LASSO, random forest).
-*   **Michael Valderrama:** exploratory data analysis; alternative modeling approaches.
-*   **Tue Truong:** data cleaning & preparation; Bayesian modeling (priors, MCMC, B-splines, interpretability).
+*   **Andre Hoth:** 
+*   **Michael Valderrama:** 
+*   **Tue Truong:** 
 
 *(Note: Work is divided equally. All team members contribute to and review the codebase.)*
 
